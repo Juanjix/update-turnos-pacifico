@@ -58,5 +58,5 @@ export interface BookingResponse {
 export interface CourtMapPosition {
   id: string;
   x: number; // left %
-  y: number; // top %
+  y: number;
 }
