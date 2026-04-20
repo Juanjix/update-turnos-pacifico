@@ -1,0 +1,327 @@
+// components/PacificoMap.tsx
+'use client'
+
+import { Court, CourtAvailability } from '@/types'
+
+// Absolute positions on the map background (percentage-based)
+const COURT_POSITIONS: Record<string, { x: number; y: number }> = {
+  '1': { x: 18, y: 30 },
+  '2': { x: 18, y: 65 },
+  '3': { x: 50, y: 30 },
+  '4': { x: 50, y: 65 },
+  '5': { x: 82, y: 30 },
+  '6': { x: 82, y: 65 },
+}
+
+interface PacificoMapProps {
+  courts: CourtAvailability[]
+  selectedCourtId: string | null
+  onCourtClick: (court: Court) => void
+}
+
+type CourtStatus = 'available' | 'limited' | 'full'
+
+function getStatus(ca: CourtAvailability): CourtStatus {
+  const available = ca.slots.filter((s) => s.available).length
+  if (available === 0) return 'full'
+  if (available <= 3) return 'limited'
+  return 'available'
+}
+
+// ─── Mini tennis court drawn in SVG ──────────────────────────────────────────
+function TennisCourtSVG({
+  isIndoor,
+  status,
+  isSelected,
+}: {
+  isIndoor: boolean
+  status: CourtStatus
+  isSelected: boolean
+}) {
+  const surface =
+    status === 'full'
+      ? isIndoor ? '#7a3218' : '#8a3a1a'
+      : isIndoor ? '#b84a20'  : '#d4602a'
+
+  const lineColor = 'rgba(255,255,255,0.82)'
+  const netColor  = 'rgba(255,255,255,0.90)'
+
+  return (
+    <svg viewBox="0 0 120 78" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" style={{ display: 'block' }}>
+      {/* Surface */}
+      <rect x="0" y="0" width="120" height="78" rx="3" fill={surface} />
+
+      {/* Outer boundary */}
+      <rect x="8" y="8" width="104" height="62" fill="none" stroke={lineColor} strokeWidth="1.2" />
+
+      {/* Service boxes */}
+      <line x1="8"  y1="28" x2="112" y2="28" stroke={lineColor} strokeWidth="0.8" />
+      <line x1="8"  y1="50" x2="112" y2="50" stroke={lineColor} strokeWidth="0.8" />
+
+      {/* Center service line */}
+      <line x1="60" y1="28" x2="60" y2="50" stroke={lineColor} strokeWidth="0.8" />
+
+      {/* Net (dashed vertical) */}
+      <line x1="60" y1="8" x2="60" y2="70" stroke={netColor} strokeWidth="2" strokeDasharray="2,2" opacity="0.9" />
+
+      {/* Net posts */}
+      <circle cx="60" cy="8"  r="2" fill={netColor} opacity="0.9" />
+      <circle cx="60" cy="70" r="2" fill={netColor} opacity="0.9" />
+
+      {/* Occupied tint */}
+      {status === 'full' && (
+        <rect x="0" y="0" width="120" height="78" rx="3" fill="rgba(180,30,30,0.2)" />
+      )}
+
+      {/* Selected highlight */}
+      {isSelected && (
+        <rect x="0" y="0" width="120" height="78" rx="3" fill="rgba(255,255,255,0.06)" />
+      )}
+    </svg>
+  )
+}
+
+// ─── Single court button ──────────────────────────────────────────────────────
+function CourtButton({
+  ca,
+  isSelected,
+  onClick,
+}: {
+  ca: CourtAvailability
+  isSelected: boolean
+  onClick: () => void
+}) {
+  const status    = getStatus(ca)
+  const isIndoor  = ca.court.type === 'indoor'
+  const available = ca.slots.filter((s) => s.available).length
+
+  const glowRgba = isIndoor ? 'rgba(220,100,40,0.55)' : 'rgba(220,130,60,0.55)'
+
+  const borderCls = isSelected
+    ? isIndoor ? 'border-orange-600' : 'border-orange-400'
+    : status === 'full'
+    ? 'border-red-500/40'
+    : isIndoor ? 'border-orange-700/40' : 'border-orange-500/40'
+
+  const pillCls =
+    status === 'full'
+      ? 'bg-red-500/25 text-red-300'
+      : status === 'limited'
+      ? 'bg-amber-500/25 text-amber-200'
+      : isIndoor
+      ? 'bg-orange-700/25 text-orange-200'
+      : 'bg-orange-500/25 text-orange-200'
+
+  const pillText = status === 'full' ? 'Ocupada' : `${available} libres`
+
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        group relative flex flex-col items-center gap-1.5
+        focus:outline-none
+        transition-all duration-200 ease-out
+        ${isSelected ? 'scale-110 z-20' : 'hover:scale-[1.07] hover:z-10'}
+      `}
+    >
+      {/* Court card */}
+      <div
+        className={`relative rounded-xl border-2 overflow-hidden transition-all duration-200 ${borderCls}`}
+        style={{
+          width: 110,
+          height: 72,
+          boxShadow: isSelected
+            ? `0 0 0 3px ${glowRgba}, 0 12px 36px rgba(0,0,0,0.6)`
+            : '0 4px 16px rgba(0,0,0,0.4)',
+        }}
+      >
+        <TennisCourtSVG isIndoor={isIndoor} status={status} isSelected={isSelected} />
+      </div>
+
+      {/* Labels */}
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="text-white text-[11px] font-semibold tracking-wide leading-none">
+          {ca.court.name}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-white/35 text-[9px] uppercase tracking-widest font-mono">
+            {isIndoor ? 'cubierta' : 'exterior'}
+          </span>
+          <span className={`text-[9px] font-mono font-medium px-1.5 py-px rounded-full ${pillCls}`}>
+            {pillText}
+          </span>
+        </div>
+      </div>
+
+      {/* Pulse ring when selected */}
+      {isSelected && (
+        <div
+          className={`
+            absolute -inset-2 rounded-2xl border-2 animate-pulse pointer-events-none
+            ${isIndoor ? 'border-orange-600/45' : 'border-orange-400/45'}
+          `}
+        />
+      )}
+    </button>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+export function PacificoMap({ courts, selectedCourtId, onCourtClick }: PacificoMapProps) {
+  return (
+    <>
+      {/* ── Desktop: aerial map ────────────────────────────────────────────── */}
+      <div
+        className="hidden md:block relative w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+        style={{ aspectRatio: '16/9' }}
+      >
+        {/* Background */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse at 28% 20%, #162e1e 0%, transparent 55%),
+              radial-gradient(ellipse at 72% 80%, #0e2618 0%, transparent 55%),
+              linear-gradient(160deg, #0b1e12 0%, #10261a 50%, #0c1f14 100%)
+            `,
+          }}
+        >
+          {/* Grid */}
+          <svg className="absolute inset-0 w-full h-full opacity-[0.06]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="mapgrid" width="56" height="56" patternUnits="userSpaceOnUse">
+                <path d="M 56 0 L 0 0 0 56" fill="none" stroke="#4ade80" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#mapgrid)" />
+          </svg>
+
+          {/* Ghost watermark */}
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none whitespace-nowrap"
+            style={{
+              fontFamily: 'Georgia, serif',
+              fontSize: 72,
+              fontWeight: 900,
+              color: 'rgba(255,255,255,0.025)',
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+            }}
+          >
+            PACÍFICO
+          </div>
+
+          {/* Zone labels */}
+          <div className="absolute top-3 left-4 text-white/20 text-[10px] uppercase tracking-widest font-mono">
+            Canchas exteriores
+          </div>
+          <div className="absolute top-3 right-4 text-white/20 text-[10px] uppercase tracking-widest font-mono">
+            Canchas cubiertas
+          </div>
+
+          {/* Divider between zones */}
+          <div className="absolute top-6 bottom-6 left-[67%] w-px bg-white/5" />
+
+          <div className="absolute bottom-3 left-3 text-white/10 text-[9px] uppercase tracking-widest font-mono">
+            Club Pacífico Tenis · Vista aérea
+          </div>
+        </div>
+
+        {/* Court buttons */}
+        {courts.map((ca) => {
+          const pos = COURT_POSITIONS[ca.court.id]
+          if (!pos) return null
+          return (
+            <div
+              key={ca.court.id}
+              className="absolute"
+              style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: 'translate(-50%, -50%)' }}
+            >
+              <CourtButton
+                ca={ca}
+                isSelected={selectedCourtId === ca.court.id}
+                onClick={() => onCourtClick(ca.court)}
+              />
+            </div>
+          )
+        })}
+
+        {/* Legend */}
+        <div className="absolute bottom-3 right-3 flex items-center gap-4">
+          {[
+            { bg: 'bg-orange-600/70 border-orange-500/40', label: 'Exterior' },
+            { bg: 'bg-orange-800/70 border-orange-700/40',  label: 'Cubierta' },
+            { bg: 'bg-red-900/60', border: 'border-red-500/40', label: 'Sin turnos' },
+          ].map(({ bg, border, label }) => (
+            <div key={label} className="flex items-center gap-1.5 text-white/30 text-[10px] font-mono">
+              <div className={`w-3.5 h-2 rounded-sm border ${bg} ${border}`} />
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Mobile: scrollable card list ───────────────────────────────────── */}
+      <div className="md:hidden space-y-2">
+        {courts.map((ca) => {
+          const status    = getStatus(ca)
+          const isIndoor  = ca.court.type === 'indoor'
+          const isSelected = selectedCourtId === ca.court.id
+          const available  = ca.slots.filter((s) => s.available).length
+
+          return (
+            <button
+              key={ca.court.id}
+              onClick={() => onCourtClick(ca.court)}
+              className={`
+                w-full flex items-center gap-4 px-4 py-3 rounded-xl border
+                transition-all duration-150 active:scale-[0.98] focus:outline-none text-left
+                ${isSelected
+                  ? isIndoor
+                    ? 'bg-orange-950/50 border-orange-600/60'
+                    : 'bg-orange-900/30 border-orange-400/60'
+                  : 'bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]'
+                }
+              `}
+            >
+              {/* Thumbnail */}
+              <div
+                className={`flex-shrink-0 rounded-lg overflow-hidden border ${
+                  isIndoor ? 'border-orange-700/40' : 'border-orange-500/40'
+                }`}
+                style={{ width: 72, height: 46 }}
+              >
+                <TennisCourtSVG isIndoor={isIndoor} status={status} isSelected={isSelected} />
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="text-white text-sm font-semibold">{ca.court.name}</div>
+                <div className="text-white/35 text-[11px] uppercase tracking-widest font-mono mt-0.5">
+                  {isIndoor ? 'Cubierta' : 'Exterior'}
+                </div>
+              </div>
+
+              {/* Status pill */}
+              <span className={`
+                flex-shrink-0 text-[11px] font-mono font-medium px-2.5 py-1 rounded-full
+                ${status === 'full'
+                  ? 'bg-red-500/20 text-red-300'
+                  : status === 'limited'
+                  ? 'bg-amber-500/20 text-amber-300'
+                  : isIndoor
+                  ? 'bg-orange-700/20 text-orange-300'
+                  : 'bg-orange-500/20 text-orange-300'
+                }
+              `}>
+                {status === 'full' ? 'Ocupada' : `${available} libres`}
+              </span>
+
+              <span className="text-white/20 text-base flex-shrink-0">›</span>
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
+}
