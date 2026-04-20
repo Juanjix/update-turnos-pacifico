@@ -1,4 +1,3 @@
-// app/api/book/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { timesOverlap, validateDate, validateTimeRange } from "@/lib/schedule";
 import { BookingRequest, BookingResponse, Booking } from "@/types";
