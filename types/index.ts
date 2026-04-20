@@ -54,7 +54,6 @@ export interface BookingResponse {
   error?: string;
 }
 
-// Court positions on the map (percentage-based for responsive layout)
 export interface CourtMapPosition {
   id: string;
   x: number; // left %
