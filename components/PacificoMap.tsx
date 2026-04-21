@@ -386,73 +386,86 @@ export function PacificoMap({
         </div>
       </div>
 
-      {/* ── Mobile: scrollable card list ───────────────────────────────────── */}
-      <div className="md:hidden space-y-2">
-        {courts.map((ca) => {
-          const status = getStatus(ca);
-          const isIndoor = ca.court.type === "indoor";
-          const isSelected = selectedCourtId === ca.court.id;
-          const available = ca.slots.filter((s) => s.available).length;
+      {/* ── Mobile: court grid ──────────────────────────────────────────────── */}
+      <div className="md:hidden">
+        <style>{`
+          @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          @keyframes slotIn {
+            from { opacity: 0; transform: scale(0.88); }
+            to   { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
 
-          return (
-            <button
-              key={ca.court.id}
-              onClick={() => onCourtClick(ca.court)}
-              className={`
-                w-full flex items-center gap-4 px-4 py-3 rounded-xl border
-                transition-all duration-150 active:scale-[0.98] focus:outline-none text-left
-                ${
-                  isSelected
-                    ? isIndoor
-                      ? "bg-orange-950/50 border-orange-600/60"
-                      : "bg-orange-900/30 border-orange-400/60"
-                    : "bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06]"
-                }
-              `}>
-              {/* Thumbnail */}
-              <div
-                className={`flex-shrink-0 rounded-lg overflow-hidden border ${
-                  isIndoor ? "border-orange-700/40" : "border-orange-500/40"
-                }`}
-                style={{ width: 72, height: 46 }}>
-                <TennisCourtSVG
-                  isIndoor={isIndoor}
-                  status={status}
-                  isSelected={isSelected}
-                />
-              </div>
+        {/* 2-column grid of court cards */}
+        <div className="grid grid-cols-2 gap-3">
+          {courts.map((ca, i) => {
+            const status = getStatus(ca);
+            const isIndoor = ca.court.type === "indoor";
+            const isSelected = selectedCourtId === ca.court.id;
+            const available = ca.slots.filter((s) => s.available).length;
+            const shortName = ca.court.name.replace(/\s*\(.*\)/, "");
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="text-white text-sm font-semibold">
-                  {ca.court.name}
+            return (
+              <button
+                key={ca.court.id}
+                onClick={() => onCourtClick(ca.court)}
+                className="relative flex flex-col rounded-3xl overflow-hidden focus:outline-none active:scale-[0.96] transition-transform duration-150"
+                style={{
+                  animation: `cardIn 0.4s ease-out ${i * 60}ms both`,
+                  background: isSelected
+                    ? "rgba(180,70,30,0.25)"
+                    : "rgba(255,255,255,0.04)",
+                  border: isSelected
+                    ? "1px solid rgba(200,100,40,0.6)"
+                    : "0.5px solid rgba(255,255,255,0.08)",
+                  boxShadow: isSelected
+                    ? "0 0 0 3px rgba(180,70,30,0.2), 0 8px 32px rgba(0,0,0,0.4)"
+                    : "0 2px 12px rgba(0,0,0,0.3)",
+                }}>
+                {/* Court SVG fills the top */}
+                <div className="w-full" style={{ aspectRatio: "16/9" }}>
+                  <TennisCourtSVG
+                    isIndoor={isIndoor}
+                    status={status}
+                    isSelected={isSelected}
+                  />
                 </div>
-                <div className="text-white/35 text-[11px] uppercase tracking-widest font-mono mt-0.5">
-                  {isIndoor ? "Cubierta" : "Exterior"}
+
+                {/* Info strip */}
+                <div className="px-3 py-3 text-left">
+                  <div className="text-white font-semibold text-sm leading-tight">
+                    {shortName}
+                  </div>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className="text-white/30 text-[10px] uppercase tracking-widest font-mono">
+                      {isIndoor ? "Cubierta" : "Exterior"}
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full ${
+                        status === "full"
+                          ? "bg-red-500/20 text-red-300"
+                          : status === "limited"
+                            ? "bg-amber-500/20 text-amber-300"
+                            : "bg-orange-500/15 text-orange-300"
+                      }`}>
+                      {status === "full" ? "Ocupada" : `${available} libres`}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Status pill */}
-              <span
-                className={`
-                flex-shrink-0 text-[11px] font-mono font-medium px-2.5 py-1 rounded-full
-                ${
-                  status === "full"
-                    ? "bg-red-500/20 text-red-300"
-                    : status === "limited"
-                      ? "bg-amber-500/20 text-amber-300"
-                      : isIndoor
-                        ? "bg-orange-700/20 text-orange-300"
-                        : "bg-orange-500/20 text-orange-300"
-                }
-              `}>
-                {status === "full" ? "Ocupada" : `${available} libres`}
-              </span>
-
-              <span className="text-white/20 text-base flex-shrink-0">›</span>
-            </button>
-          );
-        })}
+                {/* Selected checkmark */}
+                {isSelected && (
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-white text-[10px] font-bold">
+                    ✓
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </>
   );

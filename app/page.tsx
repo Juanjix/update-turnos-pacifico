@@ -25,6 +25,14 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const fetchAvailability = useCallback(async (date: string) => {
     setLoading(true);
@@ -79,14 +87,16 @@ export default function HomePage() {
         fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
       }}>
       {/* Header */}
-      <header className="border-b border-white/5 px-6 py-4">
+      <header
+        className="border-b border-white/5 px-4 md:px-6 py-3 md:py-4"
+        style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.png"
               alt="Tenis Pacífico Bahía Blanca"
-              className="w-11 h-11 rounded-full object-cover ring-2 ring-white/10 shadow-lg"
+              className="w-9 h-9 md:w-11 md:h-11 rounded-full object-cover ring-1 ring-white/10 shadow-lg"
             />
             <div>
               <div className="font-bold text-white tracking-tight text-sm">
@@ -203,7 +213,7 @@ export default function HomePage() {
                       background: "rgba(255,255,255,0.03)",
                       border: "0.5px solid rgba(255,255,255,0.08)",
                     }}>
-                    <div className="text-[10px] uppercase tracking-widest text-white/30 font-mono mb-1">
+                    <div className="hidden sm:block text-[10px] uppercase tracking-widest text-white/30 font-mono mb-1">
                       {stat.label}
                     </div>
                     <div className="text-white font-bold text-2xl">
@@ -235,7 +245,7 @@ export default function HomePage() {
               opacity: panelOpen && selectedCourtAvailability ? 1 : 0,
             }}>
             {/* Only mount content when there's something to show — prevents ghost box */}
-            {selectedCourtAvailability && (
+            {selectedCourtAvailability && !isMobile && (
               <div
                 className="w-80 rounded-2xl overflow-hidden flex flex-col"
                 style={{
@@ -248,12 +258,24 @@ export default function HomePage() {
                   selectedDate={selectedDate}
                   onClose={handlePanelClose}
                   onBooked={handleBooked}
+                  isMobile={false}
                 />
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Mobile bottom sheet — rendered outside normal flow */}
+      {isMobile && panelOpen && selectedCourtAvailability && (
+        <BookingPanel
+          courtAvailability={selectedCourtAvailability}
+          selectedDate={selectedDate}
+          onClose={handlePanelClose}
+          onBooked={handleBooked}
+          isMobile={true}
+        />
+      )}
     </main>
   );
 }
