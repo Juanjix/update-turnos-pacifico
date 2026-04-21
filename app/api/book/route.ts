@@ -1,5 +1,11 @@
+// app/api/book/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { timesOverlap, validateDate, validateTimeRange } from "@/lib/schedule";
+import {
+  timesOverlap,
+  validateDate,
+  validateNotInPast,
+  validateTimeRange,
+} from "@/lib/schedule";
 import { BookingRequest, BookingResponse, Booking } from "@/types";
 
 export async function POST(req: NextRequest) {
@@ -35,6 +41,14 @@ export async function POST(req: NextRequest) {
   if (timeError) {
     return NextResponse.json<BookingResponse>(
       { success: false, error: timeError },
+      { status: 400 },
+    );
+  }
+
+  const pastError = validateNotInPast(date, timeStart);
+  if (pastError) {
+    return NextResponse.json<BookingResponse>(
+      { success: false, error: pastError },
       { status: 400 },
     );
   }

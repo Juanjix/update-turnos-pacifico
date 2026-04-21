@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
       ).filter((b) => b.court_id === court.id);
       return {
         court,
-        slots: computeAvailability(courtBookings),
+        slots: computeAvailability(courtBookings, date),
       };
     }),
   };

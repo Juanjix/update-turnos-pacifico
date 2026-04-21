@@ -25,7 +25,8 @@ export interface Booking {
 export interface TimeSlot {
   time_start: string;
   time_end: string;
-  available: boolean;
+  available: boolean; // false if booked OR past
+  past: boolean; // true if slot has already started (today only)
   booking?: Pick<Booking, "id" | "client_name">;
 }
 
@@ -54,8 +55,9 @@ export interface BookingResponse {
   error?: string;
 }
 
+// Court positions on the map (percentage-based for responsive layout)
 export interface CourtMapPosition {
   id: string;
   x: number; // left %
-  y: number;
+  y: number; // top %
 }

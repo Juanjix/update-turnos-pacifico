@@ -30,7 +30,8 @@ export interface Booking {
 export interface TimeSlot {
   time_start: string;
   time_end: string;
-  available: boolean;
+  available: boolean; // false if booked OR past
+  past: boolean; // true if slot has already started
   booking?: Pick<Booking, "id" | "client_name">;
 }
 
@@ -58,12 +59,12 @@ export interface CreateBookingParams {
 // ─────────────────────────────────────────────
 
 const courts: Court[] = [
-  { id: "1", name: "Cancha 1 (Cubierta)", type: "indoor" },
-  { id: "2", name: "Cancha 2 (Cubierta)", type: "indoor" },
+  { id: "1", name: "Cancha 1", type: "outdoor" },
+  { id: "2", name: "Cancha 2", type: "outdoor" },
   { id: "3", name: "Cancha 3", type: "outdoor" },
   { id: "4", name: "Cancha 4", type: "outdoor" },
-  { id: "5", name: "Cancha 5", type: "outdoor" },
-  { id: "6", name: "Cancha 6", type: "outdoor" },
+  { id: "5", name: "Cancha 5 (Cubierta)", type: "indoor" },
+  { id: "6", name: "Cancha 6 (Cubierta)", type: "indoor" },
 ];
 
 let bookings: Booking[] = [];
@@ -80,8 +81,8 @@ const SIMULATED_LATENCY_MS = 500;
 // Internal helpers
 // ─────────────────────────────────────────────
 
-function pad(n: number): string {
-  return String(n).padStart(2, "0");
+function pad(n: number, digits = 2): string {
+  return String(n).padStart(digits, "0");
 }
 
 function generateSlots(): Array<{ time_start: string; time_end: string }> {
@@ -93,6 +94,18 @@ function generateSlots(): Array<{ time_start: string; time_end: string }> {
     });
   }
   return slots;
+}
+
+/** "YYYY-MM-DD" of today in local time */
+function getTodayISO(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+/** "HH:MM" of right now in local time */
+function getCurrentHHMM(): string {
+  const now = new Date();
+  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 }
 
 /** Half-open interval overlap: [startA, endA) overlaps [startB, endB) */
@@ -130,6 +143,11 @@ export async function getAvailability(
 ): Promise<AvailabilityResponse> {
   await simDelay();
 
+  const today = getTodayISO();
+  const isToday = date === today;
+  const isPastDate = date < today;
+  const nowHHMM = isToday ? getCurrentHHMM() : null;
+
   const dayBookings = bookings.filter(
     (b) => b.date === date && b.status === "confirmed",
   );
@@ -140,22 +158,22 @@ export async function getAvailability(
     const courtBookings = dayBookings.filter((b) => b.court_id === court.id);
 
     const slots: TimeSlot[] = allSlots.map((slot) => {
+      // Slot is "past" if it has already started
+      const past = isPastDate || (isToday && slot.time_start <= nowHHMM!);
+
       const conflict = courtBookings.find((b) =>
         overlaps(slot.time_start, slot.time_end, b.time_start, b.time_end),
       );
 
-      return conflict
-        ? {
-            time_start: slot.time_start,
-            time_end: slot.time_end,
-            available: false,
-            booking: { id: conflict.id, client_name: conflict.client_name },
-          }
-        : {
-            time_start: slot.time_start,
-            time_end: slot.time_end,
-            available: true,
-          };
+      return {
+        time_start: slot.time_start,
+        time_end: slot.time_end,
+        past,
+        available: !conflict && !past,
+        ...(conflict
+          ? { booking: { id: conflict.id, client_name: conflict.client_name } }
+          : {}),
+      };
     });
 
     return { court, slots };
@@ -199,6 +217,15 @@ export async function createBooking(
   }
   if (!courts.find((c) => c.id === courtId)) {
     throw new Error("Cancha no encontrada.");
+  }
+
+  // ── Past-slot guard ───────────────────────────────────────────
+  const today = getTodayISO();
+  if (date < today) {
+    throw new Error("No se pueden hacer reservas en fechas pasadas.");
+  }
+  if (date === today && timeStart <= getCurrentHHMM()) {
+    throw new Error("El horario seleccionado ya pasó.");
   }
 
   // ── Check for overlap ────────────────────────────────────────
@@ -273,7 +300,7 @@ export function seedBookings(date: string): void {
       date,
       time_start: "10:00",
       time_end: "11:00",
-      client_name: "Martín López",
+      client_name: "Andy Murray",
       client_phone: "+54 9 11 2345-6789",
       status: "confirmed",
       created_at: new Date().toISOString(),
@@ -284,7 +311,7 @@ export function seedBookings(date: string): void {
       date,
       time_start: "14:00",
       time_end: "15:00",
-      client_name: "Sofía Ramírez",
+      client_name: "Juan Martin Del Potro",
       client_phone: "+54 9 11 3456-7890",
       status: "confirmed",
       created_at: new Date().toISOString(),
@@ -295,7 +322,7 @@ export function seedBookings(date: string): void {
       date,
       time_start: "09:00",
       time_end: "10:00",
-      client_name: "Diego Fernández",
+      client_name: "Roger Federer",
       client_phone: "+54 9 11 4567-8901",
       status: "confirmed",
       created_at: new Date().toISOString(),

@@ -332,35 +332,62 @@ function SheetBody({
           {available.length !== 1 ? "s" : ""}
         </p>
         <div className="grid grid-cols-3 gap-2">
-          {slots.map((slot, i) => (
-            <button
-              key={slot.time_start}
-              onClick={() => onSlotSelect(slot)}
-              disabled={!slot.available}
-              className="relative flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl border transition-all duration-150"
-              style={{
-                animation: slot.available
-                  ? `slotIn 0.3s ease-out ${i * 30}ms both`
-                  : "none",
-                background: slot.available
-                  ? "rgba(255,255,255,0.05)"
-                  : "rgba(255,255,255,0.02)",
-                borderColor: slot.available
-                  ? "rgba(255,255,255,0.12)"
-                  : "rgba(255,255,255,0.04)",
-                opacity: slot.available ? 1 : 0.35,
-              }}>
-              <span
-                className={`text-sm font-mono font-semibold ${slot.available ? "text-white" : "text-white/30 line-through"}`}>
-                {slot.time_start}
-              </span>
-              {slot.available && (
-                <span className="text-[9px] text-white/35 mt-0.5 font-mono uppercase tracking-wide">
-                  libre
+          {slots.map((slot, i) => {
+            const isBooked = !slot.available && !slot.past && !!slot.booking;
+            const label = slot.past ? "pasado" : isBooked ? "ocupado" : "libre";
+            return (
+              <button
+                key={slot.time_start}
+                onClick={() => onSlotSelect(slot)}
+                disabled={!slot.available}
+                className="relative flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl border transition-all duration-150"
+                style={{
+                  animation: slot.available
+                    ? `slotIn 0.3s ease-out ${i * 30}ms both`
+                    : "none",
+                  background: slot.past
+                    ? "rgba(255,255,255,0.01)"
+                    : isBooked
+                      ? "rgba(180,40,40,0.08)"
+                      : slot.available
+                        ? "rgba(255,255,255,0.06)"
+                        : "rgba(255,255,255,0.02)",
+                  borderColor: slot.past
+                    ? "rgba(255,255,255,0.03)"
+                    : isBooked
+                      ? "rgba(220,60,60,0.2)"
+                      : slot.available
+                        ? "rgba(255,255,255,0.14)"
+                        : "rgba(255,255,255,0.05)",
+                  opacity: slot.past ? 0.22 : 1,
+                  cursor: slot.available ? "pointer" : "not-allowed",
+                }}>
+                <span
+                  className="text-sm font-mono font-semibold"
+                  style={{
+                    color: slot.past
+                      ? "rgba(255,255,255,0.18)"
+                      : isBooked
+                        ? "rgba(240,100,100,0.6)"
+                        : "rgba(255,255,255,0.95)",
+                    textDecoration: slot.past ? "line-through" : "none",
+                  }}>
+                  {slot.time_start}
                 </span>
-              )}
-            </button>
-          ))}
+                <span
+                  className="text-[9px] font-mono uppercase tracking-wide mt-0.5"
+                  style={{
+                    color: slot.past
+                      ? "rgba(255,255,255,0.1)"
+                      : isBooked
+                        ? "rgba(240,100,100,0.45)"
+                        : "rgba(255,255,255,0.3)",
+                  }}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
