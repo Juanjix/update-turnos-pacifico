@@ -15,14 +15,24 @@ export interface Court {
   type: CourtType;
 }
 
+export type GameType = "singles" | "doubles";
+
+export interface Player {
+  name: string;
+  phone: string;
+}
+
 export interface Booking {
   id: string;
   court_id: string;
-  date: string; // "YYYY-MM-DD"
-  time_start: string; // "HH:MM"
-  time_end: string; // "HH:MM"
-  client_name: string;
-  client_phone: string;
+  date: string;
+  time_start: string;
+  time_end: string;
+  client_name: string; // first player name (legacy compat)
+  client_phone: string; // first player phone (legacy compat)
+  game_type: GameType;
+  players: Player[];
+  is_member: boolean;
   status: BookingStatus;
   created_at: string;
 }
@@ -50,8 +60,11 @@ export interface CreateBookingParams {
   date: string;
   timeStart: string;
   timeEnd: string;
-  name: string;
-  phone: string;
+  name: string; // first player (legacy)
+  phone: string; // first player (legacy)
+  gameType: GameType;
+  players: Player[];
+  isMember: boolean;
 }
 
 // ─────────────────────────────────────────────
@@ -196,24 +209,33 @@ export async function createBooking(
 ): Promise<Booking> {
   await simDelay();
 
-  const { courtId, date, timeStart, timeEnd, name, phone } = params;
+  const {
+    courtId,
+    date,
+    timeStart,
+    timeEnd,
+    name,
+    phone,
+    gameType,
+    players,
+    isMember,
+  } = params;
 
   // ── Validate inputs ──────────────────────────────────────────
-  if (
-    !courtId ||
-    !date ||
-    !timeStart ||
-    !timeEnd ||
-    !name?.trim() ||
-    !phone?.trim()
-  ) {
+  if (!courtId || !date || !timeStart || !timeEnd) {
     throw new Error("Todos los campos son requeridos.");
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    throw new Error("Formato de fecha inválido. Usá YYYY-MM-DD.");
+  if (!players || players.length === 0) {
+    throw new Error("Debe haber al menos un jugador.");
   }
-  if (timeStart >= timeEnd) {
-    throw new Error("La hora de inicio debe ser anterior a la hora de fin.");
+  const expectedPlayers = gameType === "doubles" ? 4 : 2;
+  if (players.length !== expectedPlayers) {
+    throw new Error(
+      `Se requieren ${expectedPlayers} jugadores para ${gameType === "doubles" ? "dobles" : "singles"}.`,
+    );
+  }
+  if (players.some((p) => !p.name.trim() || !p.phone.trim())) {
+    throw new Error("Todos los jugadores deben tener nombre y teléfono.");
   }
   if (!courts.find((c) => c.id === courtId)) {
     throw new Error("Cancha no encontrada.");
@@ -250,8 +272,14 @@ export async function createBooking(
     date,
     time_start: timeStart,
     time_end: timeEnd,
-    client_name: name.trim(),
-    client_phone: phone.trim(),
+    client_name: players[0].name.trim(),
+    client_phone: players[0].phone.trim(),
+    game_type: gameType,
+    players: players.map((p) => ({
+      name: p.name.trim(),
+      phone: p.phone.trim(),
+    })),
+    is_member: isMember,
     status: "confirmed",
     created_at: new Date().toISOString(),
   };
@@ -300,10 +328,13 @@ export function seedBookings(date: string): void {
       date,
       time_start: "10:00",
       time_end: "11:00",
-      client_name: "Andy Murray",
+      client_name: "Martín López",
       client_phone: "+54 9 11 2345-6789",
       status: "confirmed",
       created_at: new Date().toISOString(),
+      game_type: "singles",
+      players: [],
+      is_member: false,
     },
     {
       id: "seed-2",
@@ -311,10 +342,13 @@ export function seedBookings(date: string): void {
       date,
       time_start: "14:00",
       time_end: "15:00",
-      client_name: "Juan Martin Del Potro",
+      client_name: "Sofía Ramírez",
       client_phone: "+54 9 11 3456-7890",
       status: "confirmed",
       created_at: new Date().toISOString(),
+      game_type: "singles",
+      players: [],
+      is_member: false,
     },
     {
       id: "seed-3",
@@ -322,10 +356,13 @@ export function seedBookings(date: string): void {
       date,
       time_start: "09:00",
       time_end: "10:00",
-      client_name: "Roger Federer",
+      client_name: "Diego Fernández",
       client_phone: "+54 9 11 4567-8901",
       status: "confirmed",
       created_at: new Date().toISOString(),
+      game_type: "singles",
+      players: [],
+      is_member: false,
     },
   ];
 }

@@ -10,14 +10,26 @@ export interface Court {
   created_at?: string;
 }
 
+export type GameType = "singles" | "doubles";
+
+export interface Player {
+  name: string;
+  phone: string;
+}
+
 export interface Booking {
   id: string;
   court_id: string;
   date: string; // ISO date: "2025-01-15"
   time_start: string; // "09:00"
   time_end: string; // "10:00"
+  // Legacy flat fields kept for DB backward-compat
   client_name: string;
   client_phone: string;
+  // Extended fields
+  game_type: GameType;
+  players: Player[];
+  is_member: boolean;
   status: BookingStatus;
   created_at?: string;
 }
@@ -45,8 +57,13 @@ export interface BookingRequest {
   date: string;
   timeStart: string;
   timeEnd: string;
+  // Legacy (kept for API route backward-compat)
   name: string;
   phone: string;
+  // Extended
+  gameType: GameType;
+  players: Player[];
+  isMember: boolean;
 }
 
 export interface BookingResponse {
