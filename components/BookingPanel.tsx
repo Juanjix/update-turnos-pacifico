@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import { CourtAvailability, TimeSlot, GameType, Player } from "@/types";
 // 🔧 DB MODE — using Supabase via lib/db.ts
-import { createBooking } from "@/lib/db";
+import { createBooking } from "@/lib/api-client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

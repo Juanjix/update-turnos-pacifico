@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { BookingCard } from "@/components/ui/BookingCard";
 import { CancelModal } from "@/components/ui/CancelModal";
-import { getActiveBookings, cancelBooking } from "@/lib/db";
+import { getActiveBookings, cancelBooking } from "@/lib/api-client";
 import { Booking } from "@/types";
 
 function toISODate(d: Date) {

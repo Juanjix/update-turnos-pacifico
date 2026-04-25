@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 // 🔧 DB MODE — using Supabase via lib/db.ts
-import { getActiveBookings, cancelBooking, Booking } from "@/lib/db";
+import { getActiveBookings, cancelBooking } from "@/lib/api-client";
+import { Booking } from "@/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

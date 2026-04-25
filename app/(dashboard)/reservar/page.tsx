@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PacificoMap } from "@/components/PacificoMap";
 import { BookingPanel } from "@/components/BookingPanel";
 import { DatePicker } from "@/components/DatePicker";
-import { getAvailability } from "@/lib/db";
+import { getAvailability } from "@/lib/api-client";
 import { Court, CourtAvailability } from "@/types";
 
 function toISODate(d: Date): string {
