@@ -19,7 +19,7 @@ export interface Player {
   phone: string;
 }
 
-export interface Booking {
+export type Booking = {
   id: string;
   court_id: string;
   date: string; // ISO date: "2025-01-15"
@@ -35,7 +35,7 @@ export interface Booking {
   phone: string; // primary contact phone (for WhatsApp lookup)
   status: BookingStatus;
   created_at?: string;
-}
+};
 
 export interface TimeSlot {
   time_start: string;

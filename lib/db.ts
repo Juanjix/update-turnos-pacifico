@@ -344,3 +344,4 @@ export async function getAllBookings(): Promise<Booking[]> {
 
   return (data ?? []).map((r) => rowToBooking(r as BookingRow));
 }
+export type { Booking };
