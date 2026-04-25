@@ -291,19 +291,58 @@ export async function createBooking(
 
 /**
  * Cancel an existing booking by ID.
+ * Validates: exists, is confirmed, has not already started.
  *
  * Migration path → PATCH /api/book/:id { status: 'cancelled' }
  */
 export async function cancelBooking(bookingId: string): Promise<Booking> {
   await simDelay();
 
-  const index = bookings.findIndex((b) => b.id === bookingId);
-  if (index === -1) throw new Error("Reserva no encontrada.");
+  const booking = bookings.find((b) => b.id === bookingId);
+  if (!booking) throw new Error("Reserva no encontrada.");
+  if (booking.status === "cancelled")
+    throw new Error("Este turno ya fue cancelado.");
 
-  const updated: Booking = { ...bookings[index], status: "cancelled" };
+  // Prevent cancelling a booking that has already started
+  const today = getTodayISO();
+  const now = getCurrentHHMM();
+  if (
+    booking.date < today ||
+    (booking.date === today && booking.time_start <= now)
+  ) {
+    throw new Error("No podés cancelar un turno que ya comenzó o ya pasó.");
+  }
+
+  const updated: Booking = { ...booking, status: "cancelled" };
   bookings = bookings.map((b) => (b.id === bookingId ? updated : b));
-
   return updated;
+}
+
+/**
+ * Return all active (confirmed) bookings — optionally filtered by phone number.
+ * Used by web UI "Mis Turnos" and WhatsApp cancel flow.
+ *
+ * Migration path → GET /api/bookings?phone=...
+ */
+export async function getActiveBookings(phone?: string): Promise<Booking[]> {
+  await simDelay();
+  const today = getTodayISO();
+  const now = getCurrentHHMM();
+
+  return bookings.filter((b) => {
+    if (b.status !== "confirmed") return false;
+    // Exclude bookings already in the past
+    if (b.date < today) return false;
+    if (b.date === today && b.time_end <= now) return false;
+    // Phone filter: match against any player's phone
+    if (phone) {
+      const normalised = phone.replace(/\D/g, "");
+      return b.players.some((p) =>
+        p.phone.replace(/\D/g, "").endsWith(normalised.slice(-8)),
+      );
+    }
+    return true;
+  });
 }
 
 /**
@@ -330,11 +369,14 @@ export function seedBookings(date: string): void {
       time_end: "11:00",
       client_name: "Martín López",
       client_phone: "+54 9 11 2345-6789",
+      game_type: "singles",
+      players: [
+        { name: "Martín López", phone: "+54 9 11 2345-6789" },
+        { name: "Carlos Ruiz", phone: "+54 9 11 9876-5432" },
+      ],
+      is_member: true,
       status: "confirmed",
       created_at: new Date().toISOString(),
-      game_type: "singles",
-      players: [],
-      is_member: false,
     },
     {
       id: "seed-2",
@@ -344,11 +386,14 @@ export function seedBookings(date: string): void {
       time_end: "15:00",
       client_name: "Sofía Ramírez",
       client_phone: "+54 9 11 3456-7890",
+      game_type: "singles",
+      players: [
+        { name: "Sofía Ramírez", phone: "+54 9 11 3456-7890" },
+        { name: "Laura Gómez", phone: "+54 9 11 1111-2222" },
+      ],
+      is_member: false,
       status: "confirmed",
       created_at: new Date().toISOString(),
-      game_type: "singles",
-      players: [],
-      is_member: false,
     },
     {
       id: "seed-3",
@@ -358,11 +403,16 @@ export function seedBookings(date: string): void {
       time_end: "10:00",
       client_name: "Diego Fernández",
       client_phone: "+54 9 11 4567-8901",
+      game_type: "doubles",
+      players: [
+        { name: "Diego Fernández", phone: "+54 9 11 4567-8901" },
+        { name: "Lucas Pérez", phone: "+54 9 11 2222-3333" },
+        { name: "Andrés Silva", phone: "+54 9 11 3333-4444" },
+        { name: "Tomás Ríos", phone: "+54 9 11 4444-5555" },
+      ],
+      is_member: true,
       status: "confirmed",
       created_at: new Date().toISOString(),
-      game_type: "singles",
-      players: [],
-      is_member: false,
     },
   ];
 }

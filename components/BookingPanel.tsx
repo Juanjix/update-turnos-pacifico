@@ -3,8 +3,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CourtAvailability, TimeSlot, GameType, Player } from "@/types";
-// 🔧 MOCK MODE — swap this line for '@/lib/api-client' to use real API routes
-import { createBooking } from "@/lib/mockBackend";
+// 🔧 DB MODE — using Supabase via lib/db.ts
+import { createBooking } from "@/lib/db";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

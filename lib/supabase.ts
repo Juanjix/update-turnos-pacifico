@@ -1,32 +1,48 @@
 // lib/supabase.ts
+// Two lazy singletons:
+//   - anonClient   → for client-side / public queries (uses NEXT_PUBLIC_SUPABASE_ANON_KEY)
+//   - serverClient → for server-side / privileged queries (uses SUPABASE_SERVICE_ROLE_KEY)
+//
+// Always use serverClient in API routes (bypasses RLS, required for writes).
+// Use anonClient only if you add auth and want RLS enforcement.
+
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-// Lazy singleton — client is created on first use, not at import time.
-// This avoids build-time crashes when env vars are only available at runtime (Vercel, etc.)
-let _client: SupabaseClient | null = null;
-
-export function getSupabaseClient(): SupabaseClient {
-  if (_client) return _client;
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error(
-      "[Supabase] Missing environment variables.\n" +
-        "Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY " +
-        "to your Vercel project settings (or .env.local for local dev).",
-    );
-  }
-
-  _client = createClient(url, key);
-  return _client;
+function requireEnv(key: string): string {
+  const val = process.env[key];
+  if (!val) throw new Error(`[Supabase] Missing env var: ${key}`);
+  return val;
 }
 
-// Convenience re-export for files that prefer the old `supabase.from(...)` style.
-// Still lazy — the getter is called on first property access.
+// ── Server client (service role — bypasses RLS) ───────────────────────────────
+let _server: SupabaseClient | null = null;
+
+export function getServerClient(): SupabaseClient {
+  if (_server) return _server;
+  _server = createClient(
+    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY"),
+    { auth: { persistSession: false } }, // never persist on server
+  );
+  return _server;
+}
+
+// ── Anon client (respects RLS — safe for public reads) ────────────────────────
+let _anon: SupabaseClient | null = null;
+
+export function getAnonClient(): SupabaseClient {
+  if (_anon) return _anon;
+  _anon = createClient(
+    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
+    requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  );
+  return _anon;
+}
+
+// ── Default export (server client via Proxy — lazy, safe for API routes) ──────
+// Kept for backward compat with existing imports: `import { supabase } from '@/lib/supabase'`
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
-    return (getSupabaseClient() as never)[prop];
+    return (getServerClient() as never)[prop];
   },
 });

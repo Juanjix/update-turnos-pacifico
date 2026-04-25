@@ -8,7 +8,7 @@ import { DatePicker } from "@/components/DatePicker";
 // 🔧 MOCK MODE — swap this line for '@/lib/api-client' to use real API routes
 import { getAvailability, seedBookings } from "@/lib/mockBackend";
 import { Court, CourtAvailability } from "@/types";
-
+import { MisTurnos } from "@/components/MisTurnos";
 function toISODate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -86,6 +86,8 @@ export default function HomePage() {
           "linear-gradient(135deg, #060d0a 0%, #0a1a12 50%, #06100c 100%)",
         fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
       }}>
+      <MisTurnos defaultPhone="" />
+
       {/* Header */}
       <header
         className="border-b border-white/5 px-4 md:px-6 py-3 md:py-4"

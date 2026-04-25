@@ -2,6 +2,8 @@
 
 export type CourtType = "indoor" | "outdoor";
 export type BookingStatus = "confirmed" | "cancelled";
+// DB-level status (new bookings use 'confirmed', cancel sets 'cancelled')
+// Note: mockBackend historically used 'confirmed'; Supabase schema uses same values.
 
 export interface Court {
   id: string;
@@ -23,13 +25,14 @@ export interface Booking {
   date: string; // ISO date: "2025-01-15"
   time_start: string; // "09:00"
   time_end: string; // "10:00"
-  // Legacy flat fields kept for DB backward-compat
+  // Legacy flat fields — derived from players[0], kept for schedule.ts compat
   client_name: string;
   client_phone: string;
   // Extended fields
   game_type: GameType;
   players: Player[];
   is_member: boolean;
+  phone: string; // primary contact phone (for WhatsApp lookup)
   status: BookingStatus;
   created_at?: string;
 }
