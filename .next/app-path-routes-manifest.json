@@ -2,7 +2,9 @@
   "/_not-found/page": "/_not-found",
   "/api/cancel/route": "/api/cancel",
   "/api/whatsapp/webhook/route": "/api/whatsapp/webhook",
-  "/page": "/",
+  "/api/book/route": "/api/book",
   "/api/availability/route": "/api/availability",
-  "/api/book/route": "/api/book"
+  "/page": "/",
+  "/(dashboard)/reservar/page": "/reservar",
+  "/(dashboard)/misturnos/page": "/misturnos"
 }

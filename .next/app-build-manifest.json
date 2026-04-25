@@ -1,56 +1,75 @@
 {
   "pages": {
     "/_not-found/page": [
-      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-4f212684648fcab9.js",
       "static/chunks/main-app-2bdf6d36e36199e5.js",
       "static/chunks/app/_not-found/page-0fd3cd7c685c5915.js"
     ],
     "/layout": [
-      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-4f212684648fcab9.js",
       "static/chunks/main-app-2bdf6d36e36199e5.js",
-      "static/css/6bccf988656de2c0.css",
+      "static/css/5d140a3ccff9d9c9.css",
       "static/chunks/app/layout-52683f9a7e5bff02.js"
     ],
     "/api/cancel/route": [
-      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-4f212684648fcab9.js",
       "static/chunks/main-app-2bdf6d36e36199e5.js",
-      "static/chunks/app/api/cancel/route-f5fac11fddfc6159.js"
+      "static/chunks/app/api/cancel/route-40577c5db4cfeb24.js"
     ],
     "/api/whatsapp/webhook/route": [
-      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-4f212684648fcab9.js",
       "static/chunks/main-app-2bdf6d36e36199e5.js",
-      "static/chunks/app/api/whatsapp/webhook/route-f5fac11fddfc6159.js"
-    ],
-    "/page": [
-      "static/chunks/webpack-4a462cecab786e93.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-4f212684648fcab9.js",
-      "static/chunks/main-app-2bdf6d36e36199e5.js",
-      "static/chunks/44530001-2a95bb40d7cb4c97.js",
-      "static/chunks/533-3a8564b8876db002.js",
-      "static/chunks/app/page-212dd23553878e80.js"
-    ],
-    "/api/availability/route": [
-      "static/chunks/webpack-4a462cecab786e93.js",
-      "static/chunks/4bd1b696-c023c6e3521b1417.js",
-      "static/chunks/255-4f212684648fcab9.js",
-      "static/chunks/main-app-2bdf6d36e36199e5.js",
-      "static/chunks/app/api/availability/route-f5fac11fddfc6159.js"
+      "static/chunks/app/api/whatsapp/webhook/route-40577c5db4cfeb24.js"
     ],
     "/api/book/route": [
-      "static/chunks/webpack-4a462cecab786e93.js",
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-4f212684648fcab9.js",
       "static/chunks/main-app-2bdf6d36e36199e5.js",
-      "static/chunks/app/api/book/route-f5fac11fddfc6159.js"
+      "static/chunks/app/api/book/route-40577c5db4cfeb24.js"
+    ],
+    "/api/availability/route": [
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-4f212684648fcab9.js",
+      "static/chunks/main-app-2bdf6d36e36199e5.js",
+      "static/chunks/app/api/availability/route-40577c5db4cfeb24.js"
+    ],
+    "/page": [
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-4f212684648fcab9.js",
+      "static/chunks/main-app-2bdf6d36e36199e5.js",
+      "static/chunks/app/page-40577c5db4cfeb24.js"
+    ],
+    "/(dashboard)/layout": [
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-4f212684648fcab9.js",
+      "static/chunks/main-app-2bdf6d36e36199e5.js",
+      "static/chunks/app/(dashboard)/layout-aad6813169125be3.js"
+    ],
+    "/(dashboard)/reservar/page": [
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-4f212684648fcab9.js",
+      "static/chunks/main-app-2bdf6d36e36199e5.js",
+      "static/chunks/app/(dashboard)/reservar/page-924870313302f879.js"
+    ],
+    "/(dashboard)/misturnos/page": [
+      "static/chunks/webpack-2e4668c1721e1d9e.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-4f212684648fcab9.js",
+      "static/chunks/main-app-2bdf6d36e36199e5.js",
+      "static/chunks/app/(dashboard)/misturnos/page-1bcd0ee3c6e15661.js"
     ]
   }
 }

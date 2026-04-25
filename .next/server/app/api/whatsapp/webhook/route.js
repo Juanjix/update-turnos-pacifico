@@ -17,7 +17,7 @@ Tambi\xe9n pod\xe9s reservar desde nuestra web 🎾`):e.includes("precio")||e.in
 
 Escrib\xed:
 • *"reservar"* — para hacer una reserva
-• *"cancelar"* — para cancelar un turno`)}async function E(a,b){let{getActiveBookings:d}=await Promise.all([c.e(457),c.e(143)]).then(c.bind(c,7143)),e=await d(a);if(0===e.length)return z(a),`No ten\xe9s turnos activos para cancelar, ${b} 👍`;if(1===e.length){let b=e[0];return y(a,{step:"cancel_confirm",selected:b,candidates:e}),`Encontr\xe9 este turno:
+• *"cancelar"* — para cancelar un turno`)}async function E(a,b){let{getActiveBookings:d}=await c.e(143).then(c.bind(c,7143)),e=await d(a);if(0===e.length)return z(a),`No ten\xe9s turnos activos para cancelar, ${b} 👍`;if(1===e.length){let b=e[0];return y(a,{step:"cancel_confirm",selected:b,candidates:e}),`Encontr\xe9 este turno:
 
 ${A(b)}
 
@@ -31,7 +31,7 @@ ${a}`}let e=c[d];return y(a,{step:"cancel_confirm",selected:e,candidates:c}),`Va
 
 ${A(e)}
 
-\xbfConfirm\xe1s? Respond\xe9 *s\xed* o *no*.`}async function G(a,b,d){if(/^(no|nop|nope|cancelar no|volver)$/i.test(b.trim()))return z(a),`Perfecto, no cancelamos nada 👍 \xbfNecesit\xe1s algo m\xe1s?`;if(!/^(si|sí|s|yes|dale|ok|confirmar|confirm|claro|obvio|por supuesto)$/i.test(b.trim()))return`Respond\xe9 *s\xed* para confirmar la cancelaci\xf3n, o *no* para volver.`;try{let{cancelBooking:b}=await Promise.all([c.e(457),c.e(143)]).then(c.bind(c,7143));return await b(d.id),z(a),`✅ Turno cancelado correctamente.
+\xbfConfirm\xe1s? Respond\xe9 *s\xed* o *no*.`}async function G(a,b,d){if(/^(no|nop|nope|cancelar no|volver)$/i.test(b.trim()))return z(a),`Perfecto, no cancelamos nada 👍 \xbfNecesit\xe1s algo m\xe1s?`;if(!/^(si|sí|s|yes|dale|ok|confirmar|confirm|claro|obvio|por supuesto)$/i.test(b.trim()))return`Respond\xe9 *s\xed* para confirmar la cancelaci\xf3n, o *no* para volver.`;try{let{cancelBooking:b}=await c.e(143).then(c.bind(c,7143));return await b(d.id),z(a),`✅ Turno cancelado correctamente.
 
 ${A(d)}
 

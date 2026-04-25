@@ -31,6 +31,18 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/misturnos",
+      "regex": "^/misturnos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/misturnos(?:/)?$"
+    },
+    {
+      "page": "/reservar",
+      "regex": "^/reservar(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/reservar(?:/)?$"
     }
   ],
   "dataRoutes": [],
