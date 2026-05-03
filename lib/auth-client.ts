@@ -1,14 +1,16 @@
 // lib/auth-client.ts
-// Browser-safe auth helpers — singleton client so session state is shared
-// across signIn / getSession / signOut calls within the same page lifecycle.
+// Browser-safe auth helpers using @supabase/ssr createBrowserClient.
+// This stores the session in cookies (not just localStorage) so the
+// server-side middleware can read the token on every request.
 
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 let _client: SupabaseClient | null = null;
 
 function getClient(): SupabaseClient {
   if (!_client) {
-    _client = createClient(
+    _client = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
