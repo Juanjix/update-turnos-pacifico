@@ -1,7 +1,3 @@
 {
-  "/api/cancel/route": "app/api/cancel/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/availability/route": "app/api/availability/route.js",
-  "/(dashboard)/reservar/page": "app/(dashboard)/reservar/page.js",
-  "/(dashboard)/mis-turnos/page": "app/(dashboard)/mis-turnos/page.js"
+  "/login/page": "app/login/page.js"
 }

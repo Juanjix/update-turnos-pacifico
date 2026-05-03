@@ -2,6 +2,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/auth-client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,6 +23,31 @@ const NAV = [
     sublabel: "Ver y cancelar reservas",
   },
 ] as const;
+
+// ─── Logout button ───────────────────────────────────────────────────────────
+
+function LogoutButton({ onNavClick }: { onNavClick?: () => void }) {
+  const router = useRouter();
+  const handleLogout = async () => {
+    onNavClick?.();
+    await signOut();
+    router.replace("/login");
+  };
+  return (
+    <button
+      onClick={handleLogout}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 hover:bg-white/5 group">
+      <span
+        className="text-lg w-8 h-8 flex items-center justify-center rounded-lg flex-shrink-0"
+        style={{ background: "rgba(200,40,30,0.1)" }}>
+        🚪
+      </span>
+      <span className="text-sm font-medium text-white/30 group-hover:text-white/60 transition-colors">
+        Cerrar sesión
+      </span>
+    </button>
+  );
+}
 
 // ─── Sidebar inner (shared between desktop + drawer) ─────────────────────────
 
@@ -143,16 +170,11 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
         </div>
       </nav>
 
-      {/* Footer */}
+      {/* Footer — logout */}
       <div
-        className="px-5 py-4 border-t"
+        className="px-3 py-4 border-t"
         style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
-          <span className="text-white/25 text-[10px] font-mono uppercase tracking-widest">
-            En línea
-          </span>
-        </div>
+        <LogoutButton onNavClick={onNavClick} />
       </div>
     </div>
   );

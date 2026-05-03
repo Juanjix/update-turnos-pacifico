@@ -19,7 +19,7 @@ export interface Player {
   phone: string;
 }
 
-export type Booking = {
+export interface Booking {
   id: string;
   court_id: string;
   date: string; // ISO date: "2025-01-15"
@@ -35,7 +35,7 @@ export type Booking = {
   phone: string; // primary contact phone (for WhatsApp lookup)
   status: BookingStatus;
   created_at?: string;
-};
+}
 
 export interface TimeSlot {
   time_start: string;
@@ -80,4 +80,21 @@ export interface CourtMapPosition {
   id: string;
   x: number; // left %
   y: number; // top %
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+export type UserRole = "USER" | "ADMIN";
+
+export interface Profile {
+  id: string;
+  email: string;
+  role: UserRole;
+  created_at?: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  profile: Profile;
 }
