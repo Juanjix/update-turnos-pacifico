@@ -18,19 +18,39 @@ function isPublic(pathname: string) {
   return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 }
 
+/**
+ * Supabase stores the session in a cookie named `sb-<ref>-auth-token`.
+ * The cookie value is a URL-encoded JSON string:
+ *   {"access_token":"eyJ...","refresh_token":"...","expires_in":3600,...}
+ *
+ * We must decode + parse it to get the raw JWT before calling getUser().
+ */
+function extractAccessToken(cookieValue: string): string | null {
+  try {
+    const decoded = decodeURIComponent(cookieValue);
+    const parsed = JSON.parse(decoded);
+    if (typeof parsed?.access_token === "string") return parsed.access_token;
+  } catch {
+    // Cookie might already be a raw JWT (older Supabase format)
+    if (cookieValue.startsWith("eyJ")) return cookieValue;
+  }
+  return null;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (isPublic(pathname)) return NextResponse.next();
 
-  // Read session token from cookie
-  const tokenCookie =
+  // Find the Supabase auth cookie (name varies by project ref)
+  const rawCookie =
     req.cookies.get("sb-access-token")?.value ??
-    // Supabase stores it under a project-specific key like sb-<ref>-auth-token
     [...req.cookies.getAll()].find((c) => c.name.includes("-auth-token"))
       ?.value;
 
-  if (!tokenCookie) {
+  const accessToken = rawCookie ? extractAccessToken(rawCookie) : null;
+
+  if (!accessToken) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
@@ -44,7 +64,7 @@ export async function middleware(req: NextRequest) {
     const {
       data: { user },
       error,
-    } = await sb.auth.getUser(tokenCookie);
+    } = await sb.auth.getUser(accessToken);
     if (error || !user)
       return NextResponse.redirect(new URL("/login", req.url));
 
