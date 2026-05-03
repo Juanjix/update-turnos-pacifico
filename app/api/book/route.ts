@@ -1,15 +1,9 @@
 // app/api/book/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import {
-  timesOverlap,
-  validateDate,
-  validateNotInPast,
-  validateTimeRange,
-} from "@/lib/schedule";
-import { BookingRequest, BookingResponse, Booking } from "@/types";
+import { BookingResponse } from "@/types";
 
 export async function POST(req: NextRequest) {
-  let body: BookingRequest;
+  let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
@@ -19,124 +13,65 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { courtId, date, timeStart, timeEnd, name, phone } = body;
+  const {
+    courtId,
+    date,
+    timeStart,
+    timeEnd,
+    name,
+    phone,
+    gameType,
+    players,
+    isMember,
+  } = body as {
+    courtId?: string;
+    date?: string;
+    timeStart?: string;
+    timeEnd?: string;
+    name?: string;
+    phone?: string;
+    gameType?: string;
+    players?: unknown;
+    isMember?: boolean;
+  };
 
-  // --- Field validation ---
-  if (!courtId || !date || !timeStart || !timeEnd || !name || !phone) {
+  if (!courtId || !date || !timeStart || !timeEnd) {
     return NextResponse.json<BookingResponse>(
-      { success: false, error: "Todos los campos son requeridos" },
+      { success: false, error: "Faltan campos requeridos" },
       { status: 400 },
     );
   }
 
-  const dateError = validateDate(date);
-  if (dateError) {
-    return NextResponse.json<BookingResponse>(
-      { success: false, error: dateError },
-      { status: 400 },
-    );
-  }
+  try {
+    const { createBooking } = await import("@/lib/db");
 
-  const timeError = validateTimeRange(timeStart, timeEnd);
-  if (timeError) {
-    return NextResponse.json<BookingResponse>(
-      { success: false, error: timeError },
-      { status: 400 },
-    );
-  }
-
-  const pastError = validateNotInPast(date, timeStart);
-  if (pastError) {
-    return NextResponse.json<BookingResponse>(
-      { success: false, error: pastError },
-      { status: 400 },
-    );
-  }
-
-  const nameTrimmed = name.trim();
-  const phoneTrimmed = phone.trim();
-  if (nameTrimmed.length < 2) {
-    return NextResponse.json<BookingResponse>(
-      { success: false, error: "El nombre es muy corto" },
-      { status: 400 },
-    );
-  }
-
-  // Import inside the handler so env vars are only read at runtime, not build time
-  const { supabase } = await import("@/lib/supabase");
-
-  // --- Verify court exists ---
-  const { data: court, error: courtError } = await supabase
-    .from("courts")
-    .select("id")
-    .eq("id", courtId)
-    .single();
-
-  if (courtError || !court) {
-    return NextResponse.json<BookingResponse>(
-      { success: false, error: "Cancha no encontrada" },
-      { status: 404 },
-    );
-  }
-
-  // --- Check for overlapping bookings ---
-  const { data: existing, error: checkError } = await supabase
-    .from("bookings")
-    .select("id, time_start, time_end")
-    .eq("court_id", courtId)
-    .eq("date", date)
-    .eq("status", "confirmed");
-
-  if (checkError) {
-    console.error("[book] overlap check error:", checkError);
-    return NextResponse.json<BookingResponse>(
-      { success: false, error: "Error al verificar disponibilidad" },
-      { status: 500 },
-    );
-  }
-
-  const hasOverlap = (
-    existing as Pick<Booking, "id" | "time_start" | "time_end">[]
-  ).some((b) => timesOverlap(timeStart, timeEnd, b.time_start, b.time_end));
-
-  if (hasOverlap) {
-    return NextResponse.json<BookingResponse>(
-      { success: false, error: "El horario seleccionado ya está ocupado" },
-      { status: 409 },
-    );
-  }
-
-  // --- Create booking ---
-  const { data: booking, error: insertError } = await supabase
-    .from("bookings")
-    .insert({
-      court_id: courtId,
+    const booking = await createBooking({
+      courtId,
       date,
-      time_start: timeStart,
-      time_end: timeEnd,
-      client_name: nameTrimmed,
-      client_phone: phoneTrimmed,
-      status: "confirmed",
-    })
-    .select()
-    .single();
+      timeStart,
+      timeEnd,
+      name: (name as string) ?? "",
+      phone: (phone as string) ?? "",
+      gameType: (gameType as "singles" | "doubles") ?? "singles",
+      players: (players as { name: string; phone: string }[]) ?? [
+        { name: name ?? "", phone: phone ?? "" },
+      ],
+      isMember: isMember ?? false,
+    });
 
-  if (insertError) {
-    console.error("[book] insert error:", insertError);
-    if (insertError.code === "23P01") {
-      return NextResponse.json<BookingResponse>(
-        { success: false, error: "El horario ya fue tomado por otro usuario" },
-        { status: 409 },
-      );
-    }
     return NextResponse.json<BookingResponse>(
-      { success: false, error: "Error al crear la reserva" },
-      { status: 500 },
+      { success: true, booking },
+      { status: 201 },
+    );
+  } catch (err: unknown) {
+    const msg =
+      err instanceof Error ? err.message : "Error al crear la reserva";
+    console.error("[book] error:", msg);
+    const status =
+      msg.includes("ocupado") || msg.includes("tomado") ? 409 : 400;
+    return NextResponse.json<BookingResponse>(
+      { success: false, error: msg },
+      { status },
     );
   }
-
-  return NextResponse.json<BookingResponse>(
-    { success: true, booking: booking as Booking },
-    { status: 201 },
-  );
 }

@@ -1,5 +1,7 @@
 {
   "/api/availability/route": "app/api/availability/route.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/book/route": "app/api/book/route.js",
+  "/page": "app/page.js",
   "/(dashboard)/reservar/page": "app/(dashboard)/reservar/page.js"
 }
